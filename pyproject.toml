@@ -1,7 +1,7 @@
 [project]
-name = "estructura-flask"
-version = "0.1.0"
-description = "Add your description here"
+name = "ms-documentacion-sysacad"
+version = "1.0.0"
+description = "Microservicion de documentacion de los alumnos del sysacad"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
