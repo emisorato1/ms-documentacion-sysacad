@@ -1,2 +1,3 @@
 from .certificate_service import CertificateService
+from .alumno_service import AlumnoService
 from app.services.documentos_office_service import obtener_tipo_documento

@@ -1,0 +1,53 @@
+services:
+    # Mock servicio de alumnos
+    mock-alumno:
+        build:
+            context: ../../mock-server-alumno-main
+            dockerfile: Dockerfile
+        image: mock-alumno:latest
+        container_name: mock-alumno
+        networks:
+            - emisoratored
+        ports:
+            - 8080:8080
+        restart: unless-stopped
+
+    # Mock servicio de gestión académica
+    mock-gestion:
+        build:
+            context: ../../mock-gestion-academica-main/mock-gestion-academica-main
+            dockerfile: Dockerfile
+        image: mock-gestion:latest
+        container_name: mock-gestion
+        networks:
+            - emisoratored
+        ports:
+            - 8081:8080
+        restart: unless-stopped
+
+    # Microservicio de documentación
+    documentacion:
+        build:
+            context: .. 
+            dockerfile: Dockerfile
+        image: ms-documentacion:v1.0.0
+        container_name: ms-documentacion
+        networks:
+            - emisoratored
+        ports:
+            - 5001:5000
+        env_file:
+            - .env
+        environment:
+            - FLASK_CONTEXT=${FLASK_CONTEXT:-production}
+            - ALUMNO_SERVICE_URL=${ALUMNO_SERVICE_URL:-http://mock-alumno:8080/api/v1/alumnos}
+            - GESTION_SERVICE_URL=${GESTION_SERVICE_URL:-http://mock-gestion:8080/api/v1/especialidades}
+        depends_on:
+            - mock-alumno
+            - mock-gestion
+        restart: unless-stopped
+
+networks:
+    emisoratored:
+        external: true
+
