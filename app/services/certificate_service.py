@@ -51,9 +51,14 @@ class CertificateService:
     
     @staticmethod
     def _buscar_alumno_por_id(id: int) -> Alumno:
-        # Obtener URLs desde variables de entorno (pueden apuntar a los mocks)
-        URL_ALUMNOS = os.getenv('ALUMNO_SERVICE_URL', 'http://mock-alumno:8080/api/v1/alumnos')
-        URL_ESPECIALIDADES = os.getenv('GESTION_SERVICE_URL', 'http://mock-gestion:8080/api/v1/especialidades')
+        # Obtener URLs desde variables de entorno (obligatorias)
+        URL_ALUMNOS = os.getenv('ALUMNO_SERVICE_URL')
+        URL_ESPECIALIDADES = os.getenv('GESTION_SERVICE_URL')
+        
+        if not URL_ALUMNOS:
+            raise Exception('ALUMNO_SERVICE_URL no está configurada en las variables de entorno')
+        if not URL_ESPECIALIDADES:
+            raise Exception('GESTION_SERVICE_URL no está configurada en las variables de entorno')
 
         # Llamada al servicio de alumnos
         r = requests.get(f'{URL_ALUMNOS}/{id}')
