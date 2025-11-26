@@ -12,7 +12,7 @@ Su función principal es generar documentación académica (Certificados de Alum
 
 - Python 3.12+: Lenguaje base.
 
-- Docker & Docker Compose: Para levantar el entorno completo (Mocks + Microservicio).
+- Docker & Docker Compose: Para levantar el microservicio de documentación.
 
 - uv: Gestor de paquetes y entornos virtuales de alto rendimiento.
 
@@ -67,44 +67,94 @@ GESTION_SERVICE_URL=http://localhost:8081/api/v1/especialidades
 
 
 ## Despliegue con Docker
+
+**Importante:** Los mocks (mock-alumno y mock-gestion) son servicios separados que deben levantarse manualmente antes del microservicio de documentación.
+
+### 1. Levantar los mocks manualmente
+
+Primero, construye y ejecuta los mocks como servicios independientes:
+
+**Mock Alumno (puerto 8080):**
+```bash
+cd ../mock-server-alumno-main
+docker build -t mock-alumno:latest .
+docker run -d --name mock-alumno --network emisoratored -p 8080:8080 mock-alumno:latest
+```
+
+**Mock Gestión Académica (puerto 8081):**
+```bash
+cd ../mock-gestion-academica-main/mock-gestion-academica-main
+docker build -t mock-gestion:latest .
+docker run -d --name mock-gestion --network emisoratored -p 8081:8080 mock-gestion:latest
+```
+
+**Nota:** Si la red `emisoratored` no existe, créala primero:
+```bash
+docker network create emisoratored
+```
+
+### 2. Levantar el microservicio de documentación
+
 ```bash
 cd docker
 ```
 
-1. Levantar todos los servicios
-
-Este comando construye las imágenes (si es necesario) y levanta:
+Este comando construye la imagen (si es necesario) y levanta el microservicio:
 
 ```bash
 docker compose up -d --build
 ```
 
-2. Ver logs en tiempo real
-Para ver qué está pasando en todos los servicios:
+### 3. Configurar variables de entorno
+
+Antes de levantar el microservicio, asegúrate de tener un archivo `.env` en el directorio `docker/` con las URLs de los servicios mock:
+
 ```bash
-docker compose logs -f
+cd docker
+cp ../.env-example .env
 ```
 
+Edita el archivo `.env` y configura las URLs según tu entorno:
 
-3. Detener el proyecto
+**Para Docker (mocks en la misma red):**
+```bash
+FLASK_CONTEXT=production
+ALUMNO_SERVICE_URL=http://mock-alumno:8080/api/v1/alumnos
+GESTION_SERVICE_URL=http://mock-gestion:8080/api/v1/especialidades
+```
 
-- Para detener los contenedores sin borrarlos:
+**Para desarrollo local (mocks en localhost):**
+```bash
+FLASK_CONTEXT=development
+ALUMNO_SERVICE_URL=http://localhost:8080/api/v1/alumnos
+GESTION_SERVICE_URL=http://localhost:8081/api/v1/especialidades
+```
 
+### 4. Ver logs en tiempo real
+
+Para ver los logs del microservicio:
 ```bash
 docker compose logs -f documentacion
 ```
 
-- Para detener y eliminar contenedores y redes (limpieza completa):
+### 5. Detener servicios
+
+**Detener el microservicio de documentación:**
 ```bash
 docker compose stop
 ```
 
+**Detener los mocks (manual):**
+```bash
+docker stop mock-alumno mock-gestion
+docker rm mock-alumno mock-gestion
+```
 
-
-4. Reiniciar servicios
+**Reiniciar el microservicio:**
 Si hiciste cambios en el código y necesitas reiniciar:
 ```bash
 docker compose down
+docker compose up -d --build
 ```
 
 
