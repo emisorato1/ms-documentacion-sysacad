@@ -72,7 +72,7 @@ GESTION_SERVICE_URL=http://localhost:8081/api/v1/especialidades
 
 ### 1. Levantar los mocks manualmente
 
-Primero, construye y ejecuta los mocks como servicios independientes:
+Primero, construye y ejecuta los mocks como servicios independientes en la misma red:
 
 **Mock Alumno (puerto 8080):**
 ```bash
@@ -83,7 +83,7 @@ docker run -d --name mock-alumno --network emisoratored -p 8080:8080 mock-alumno
 
 **Mock Gestión Académica (puerto 8081):**
 ```bash
-cd ../mock-gestion-academica-main/mock-gestion-academica-main
+cd ../mock-gestion-academica-main
 docker build -t mock-gestion:latest .
 docker run -d --name mock-gestion --network emisoratored -p 8081:8080 mock-gestion:latest
 ```
