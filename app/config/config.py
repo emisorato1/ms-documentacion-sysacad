@@ -8,6 +8,13 @@ load_dotenv(os.path.join(basedir, '.env'))
 
 class Config(object):
     TESTING = False
+    
+    # Variables de entorno para servicios externos
+    ALUMNOS_HOST = os.getenv('ALUMNOS_HOST', 'http://localhost:8080')
+    ACADEMICA_HOST = os.getenv('ACADEMICA_HOST', 'http://localhost:8081')
+    REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
+    REDIS_PORT = os.getenv('REDIS_PORT', '6379')
+    REDIS_PASSWORD = os.getenv('REDIS_PASSWORD', '')
 
     @staticmethod
     def init_app(app):

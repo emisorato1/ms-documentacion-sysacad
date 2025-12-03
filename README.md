@@ -93,19 +93,49 @@ docker run -d --name mock-gestion --network emisoratored -p 8081:8080 mock-gesti
 docker network create emisoratored
 ```
 
-### 2. Levantar el microservicio de documentación
+###  2. Requisito Previo: Certificados (HTTPS)
+La configuración (traefik/config/config.yml) espera encontrar certificados SSL en /etc/certs/. Si no los generas, Traefik podría dar error o no servir HTTPS correctamente.
+
+Como indica tu README.md, usa mkcert dentro de la carpeta traefik/:
 
 ```bash
-cd docker
+cd traefik
+mkdir -p certs
+mkcert -cert-file certs/cert.pem -key-file certs/key.pem "universidad.localhost" "*.universidad.localhost" "traefik.universidad.localhost" 127.0.0.1 ::1
+mkcert -install
+```
+
+### Levantar Traefik
+
+```bash
+cd traefik
+docker compose up -d
+```
+
+### Dashboard de Traefik: Podrás ver el estado de tus servicios entrando a:
+https://traefik.universidad.localhost/dashboard/
+
+### 3. Construí la imagen del servicio desde la carpeta que contiene el Dockerfile
+
+```bash
+cd ~/SYSACAD\ DS/ms-documentacion-sysacad/app
+docker build -t gestion-documentos:v1.0.0 .
+```
+
+### 4. Levantar el microservicio de documentación
+
+```bash
+cd docker 
 ```
 
 Este comando construye la imagen (si es necesario) y levanta el microservicio:
 
 ```bash
-docker compose up -d --build
+docker compose up -d
+
 ```
 
-### 3. Configurar variables de entorno
+### 5. Configurar variables de entorno
 
 Antes de levantar el microservicio, asegúrate de tener un archivo `.env` en el directorio `docker/` con las URLs de los servicios mock:
 
@@ -119,25 +149,25 @@ Edita el archivo `.env` y configura las URLs según tu entorno:
 **Para Docker (mocks en la misma red):**
 ```bash
 FLASK_CONTEXT=production
-ALUMNO_SERVICE_URL=http://mock-alumno:8080/api/v1/alumnos
-GESTION_SERVICE_URL=http://mock-gestion:8080/api/v1/especialidades
+ALUMNOS_HOST=http://mock-alumno:8080
+ACADEMICA_HOST=http://mock-gestion:8080
 ```
 
 **Para desarrollo local (mocks en localhost):**
 ```bash
 FLASK_CONTEXT=development
-ALUMNO_SERVICE_URL=http://localhost:8080/api/v1/alumnos
-GESTION_SERVICE_URL=http://localhost:8081/api/v1/especialidades
+ALUMNOS_HOST=http://localhost:8080
+ACADEMICA_HOST=http://localhost:8081
 ```
 
-### 4. Ver logs en tiempo real
+### 6. Ver logs en tiempo real
 
 Para ver los logs del microservicio:
 ```bash
 docker compose logs -f documentacion
 ```
 
-### 5. Detener servicios
+### 7. Detener servicios
 
 **Detener el microservicio de documentación:**
 ```bash
@@ -154,7 +184,7 @@ docker rm mock-alumno mock-gestion
 Si hiciste cambios en el código y necesitas reiniciar:
 ```bash
 docker compose down
-docker compose up -d --build
+docker compose up -d 
 ```
 
 
@@ -173,17 +203,26 @@ El flujo es: Se solicita un certificado pasando el ID del alumno. El microservic
 Muestra el PDF directamente en el navegador.
 
 Método: GET
+
+https://documentos.universidad.localhost/api/v1/certificado/<id_alumno>/pdf
+
 http://localhost:5001/api/v1/certificado/<id_alumno>/pdf
 
 2. Descargar ODT (OpenDocument Text)
 Descarga el archivo editable compatible con LibreOffice/OpenOffice.
 
 Método: GET
+
+https://documentos.universidad.localhost/api/v1/certificado/<id_alumno>/odt
+
 http://localhost:5001/api/v1/certificado/<id_alumno>/odt
 
 3. Descargar DOCX (Microsoft Word)
 Descarga el archivo editable compatible con Word.
 
 Método: GET
+
+https://documentos.universidad.localhost/api/v1/certificado/<id_alumno>/docx
+
 http://localhost:5001/api/v1/certificado/<id_alumno>/docx
 

@@ -10,4 +10,5 @@ class Alumno:
     apellido: str
     nrodocumento: str
     tipo_documento: TipoDocumento 
+    nro_legajo: int
     especialidad: Especialidad

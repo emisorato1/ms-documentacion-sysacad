@@ -1,9 +1,8 @@
 import datetime
-import os
 import requests
 from io import BytesIO
-from types import SimpleNamespace
-from app.mapping import AlumnoMapping
+from flask import current_app
+from app.mapping import AlumnoMapping, EspecialidadMapping
 from app.models import Alumno
 from app.services.documentos_office_service import obtener_tipo_documento
 
@@ -13,6 +12,14 @@ class CertificateService:
         alumno = CertificateService._buscar_alumno_por_id(id)
         if not alumno:
             return None
+        
+        # Obtener especialidad usando el especialidad_id del alumno
+        especialidad = CertificateService._buscar_especialidad_por_id(alumno.especialidad_id)
+        if not especialidad:
+            raise Exception(f'Error al obtener la especialidad con id {alumno.especialidad_id}')
+        
+        # Asignar la especialidad al alumno
+        alumno.especialidad = especialidad
         
         context = CertificateService._obtener_contexto_alumno(alumno)
         documento = obtener_tipo_documento(tipo)
@@ -33,8 +40,10 @@ class CertificateService:
     @staticmethod
     def _obtener_contexto_alumno(alumno: Alumno) -> dict:
         especialidad = alumno.especialidad
-        facultad = especialidad.facultad
-        universidad = facultad.universidad
+        # Crear objetos simples para facultad y universidad que el template espera
+        facultad = type('Facultad', (), {'nombre': especialidad.facultad})()
+        universidad = type('Universidad', (), {'nombre': especialidad.universidad or 'Universidad'})()
+        
         return {
             "alumno": alumno,
             "especialidad": especialidad,
@@ -44,62 +53,31 @@ class CertificateService:
         }
     
     @staticmethod
-    def _obtener_fechaactual():
+    def _obtener_fechaactual() -> str:
         fecha_actual = datetime.datetime.now()
         fecha_str = fecha_actual.strftime('%d de %B de %Y')
         return fecha_str
     
     @staticmethod
     def _buscar_alumno_por_id(id: int) -> Alumno:
-        # Obtener URLs desde variables de entorno (obligatorias)
-        URL_ALUMNOS = os.getenv('ALUMNO_SERVICE_URL')
-        URL_ESPECIALIDADES = os.getenv('GESTION_SERVICE_URL')
-        
-        if not URL_ALUMNOS:
-            raise Exception('ALUMNO_SERVICE_URL no está configurada en las variables de entorno')
-        if not URL_ESPECIALIDADES:
-            raise Exception('GESTION_SERVICE_URL no está configurada en las variables de entorno')
-
-        # Llamada al servicio de alumnos
-        r = requests.get(f'{URL_ALUMNOS}/{id}')
-        if r.status_code != 200:
+        alumnos_host = current_app.config.get('ALUMNOS_HOST', 'http://localhost:8080')
+        url_alumnos = f'{alumnos_host}/api/v1/alumnos'
+        alumno_mapping = AlumnoMapping()
+        r = requests.get(f'{url_alumnos}/{id}')
+        if r.status_code == 200:
+            result = alumno_mapping.load(r.json())  
+        else:
             raise Exception(f'Error al obtener el alumno con id {id}: {r.status_code}')
-        alumno_json = r.json()
-
-        # Extraer especialidad_id desde la respuesta del mock (compatibilidad con varios nombres)
-        especialidad_id = alumno_json.get('especialidad_id') or alumno_json.get('especialidadId') or alumno_json.get('especialidad')
-        if especialidad_id is None:
-            raise Exception(f'No se encontró especialidad_id en la respuesta del alumno: {alumno_json}')
-
-        # Llamada al servicio de gestion (especialidades)
-        r2 = requests.get(f'{URL_ESPECIALIDADES}/{especialidad_id}')
-        if r2.status_code != 200:
-            raise Exception(f'Error al obtener la especialidad con id {especialidad_id}: {r2.status_code}')
-        especialidad_json = r2.json()
-
-        # Construir objetos simples que cumplan con la estructura mínima esperada
-        facultad_obj = SimpleNamespace(
-            nombre=especialidad_json.get('facultad') or especialidad_json.get('Facultad'),
-            universidad=especialidad_json.get('universidad') or especialidad_json.get('Universidad')
-        )
-
-        especialidad_obj = SimpleNamespace(
-            id=especialidad_json.get('id'),
-            nombre=especialidad_json.get('especialidad') or especialidad_json.get('Especialidad'),
-            facultad=facultad_obj
-        )
-
-        tipo_doc_val = alumno_json.get('tipo_documento') or alumno_json.get('tipoDocumento') or alumno_json.get('tipo')
-        tipo_doc_obj = SimpleNamespace(sigla=tipo_doc_val, nombre=tipo_doc_val)
-
-        alumno_obj = SimpleNamespace(
-            id=alumno_json.get('id'),
-            nombre=alumno_json.get('nombre'),
-            apellido=alumno_json.get('apellido'),
-            nrodocumento=str(alumno_json.get('nro_documento') or alumno_json.get('nrodocumento') or ''),
-            tipo_documento=tipo_doc_obj,
-            especialidad=especialidad_obj
-        )
-
-        return alumno_obj
+        return result
     
+    @staticmethod
+    def _buscar_especialidad_por_id(id: int):
+        academica_host = current_app.config.get('ACADEMICA_HOST', 'http://localhost:8081')
+        url_especialidades = f'{academica_host}/api/v1/especialidades'
+        especialidad_mapping = EspecialidadMapping()
+        r = requests.get(f'{url_especialidades}/{id}')
+        if r.status_code == 200:
+            result = especialidad_mapping.load(r.json())
+        else:
+            raise Exception(f'Error al obtener la especialidad con id {id}: {r.status_code}')
+        return result

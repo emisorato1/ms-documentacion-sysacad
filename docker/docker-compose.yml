@@ -1,24 +1,36 @@
 services:
-    # Microservicio de documentación
-    documentacion:
+    documentos-service:
         build:
-            context: .. 
+            context: ..
             dockerfile: Dockerfile
-        image: ms-documentacion:v1.0.0
-        container_name: ms-documentacion
+        image: gestion-documentos:v1.0.0
+        
+        deploy:
+           replicas: 2
+           
         networks:
-            - emisoratored
-        ports:
-            - 5001:5000
-        env_file:
-            - .env
+            emisoratored:
+                aliases:
+                    - documentos.universidad.localhost
         environment:
-            - FLASK_CONTEXT=${FLASK_CONTEXT:-production}
-            - ALUMNO_SERVICE_URL=${ALUMNO_SERVICE_URL}
-            - GESTION_SERVICE_URL=${GESTION_SERVICE_URL}
-        restart: unless-stopped
+            - REDIS_HOST=${REDIS_HOST}
+            - REDIS_PORT=${REDIS_PORT}
+            - REDIS_PASSWORD=${REDIS_PASSWORD}
+            - ACADEMICA_HOST=${ACADEMICA_HOST}
+            - ALUMNOS_HOST=${ALUMNOS_HOST}
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.documentos-service.rule=Host(`documentos.universidad.localhost`)"
+            - "traefik.http.routers.documentos-service.tls=true"
+            - "traefik.http.services.documentos-service.loadbalancer.server.port=5000"
+            # Patron Circuit Breaker
+            - "traefik.http.middlewares.documentos-service.circuitbreaker.expression=LatencyAtQuantileMS(50.0) > 100"
+            - "traefik.http.middlewares.documentos-service.circuitbreaker.expression=ResponseCodeRatio(500, 600, 0, 600) > 0.25"
+            - "traefik.http.middlewares.documentos-service.circuitbreaker.expression=NetworkErrorRatio() > 0.5"
+            - "traefik.http.middlewares.documentos-service.retry.attempts=4"
+            - "traefik.http.middlewares.documentos-service.retry.initialinterval=100ms"            
+            - "traefik.docker.network=emisoratored"
 
 networks:
     emisoratored:
-        external: true
-
+      external: true
