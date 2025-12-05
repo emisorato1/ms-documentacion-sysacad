@@ -194,7 +194,18 @@ docker compose up -d
 
 ## Uso de la API
 
-Una vez levantado con Docker, el microservicio estará disponible en http://localhost:5001.
+Una vez levantado con Docker, el microservicio estará disponible en https://documentos.universidad.localhost/api/v1/
+
+
+### Ver alumnos:
+http://localhost:8080/api/v1/alumnos
+
+
+### Ver especialidades:
+http://localhost:8081/api/v1/especialidades
+
+### Ver especialidad de un alumno:
+http://localhost:8081/api/v1/especialidades/<id_alumno>
 
 ### Endpoints de Certificados
 El flujo es: Se solicita un certificado pasando el ID del alumno. El microservicio busca los datos personales y académicos y devuelve el archivo generado.
@@ -225,4 +236,45 @@ Método: GET
 https://documentos.universidad.localhost/api/v1/certificado/<id_alumno>/docx
 
 http://localhost:5001/api/v1/certificado/<id_alumno>/docx
+
+
+
+
+
+
+## Test de carga con vegeta
+
+Ejecutar en la terminal desde la carpeta de test_carga:
+
+
+```bash
+vegeta attack -rate=50 -duration=30s -targets=./test_carga.txt | vegeta report
+```
+
+## LO QUE EL PROYECTO DEBE CUMPLIR:
+
+- Analisis y resultados de vegueta - CUMPLE
+- Proyecto funcionando (creacion de imagen - dockerfile)- CUMPLE
+- Patrones de Microservicios:
+    - Balanceo de Carga - CUMPLE
+    - Retry - CUMPLE
+    - Rate Limit (alternativo) -  NO CUMPLE PERO NO HACE FALTA
+    - Corto circuito - NO CUMPLE AL TODO
+    - Cache de objetos - NO CUMPLE
+
+    
+
+@ms-documentacion-sysacad @mock-gestion-academica-main @mock-server-alumno-main @redis @traefik 
+
+
+Mi proyecto ms-documenteacion-sysacad debe cumplir con lo siguiente:
+
+@README.md (256-264) 
+
+Quiero poder hacer que cumpla con el corto circuito bien y sencillo, no quiero que modifiques el docker-compose @docker-compose.yml 
+
+
+
+### cosas que se pueden mejorar:
+- las imagenes y el encabezado del pdf del certificado guardar en cache
 

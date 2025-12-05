@@ -1,0 +1,1 @@
+GET https://documentos.universidad.localhost/api/v1/certificado/339454026/pdf
