@@ -35,11 +35,22 @@ class CertificadoEndpointsTestCase(unittest.TestCase):
 
     @patch('app.services.AlumnoService.generar_certificado_alumno_regular')
     def test_certificado_docx(self, mock_gen):
+        """Test TDD: Verifica generación y descarga de certificado DOCX"""
         mock_gen.return_value = BytesIO(b"DOCX-DUMMY")
         resp = self.client.get('/api/v1/certificado/1/docx')
         self.assertEqual(resp.status_code, 200)
         self.assertIn('application/vnd.openxmlformats-officedocument.wordprocessingml.document', resp.headers.get('Content-Type', ''))
         self.assertIn('attachment', resp.headers.get('Content-Disposition', ''))
+
+    @patch('app.services.AlumnoService.generar_certificado_alumno_regular')
+    def test_certificado_pdf_formato_correcto(self, mock_gen):
+        """Test TDD: Verifica que PDF tiene formato correcto"""
+        mock_gen.return_value = BytesIO(b"%PDF-1.4\n%dummy")
+        resp = self.client.get('/api/v1/certificado/1/pdf')
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.mimetype, 'application/pdf')
+        # PDF debe mostrarse en navegador (no descarga)
+        self.assertNotIn('attachment', resp.headers.get('Content-Disposition', ''))
 
 
 if __name__ == '__main__':

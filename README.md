@@ -1,4 +1,7 @@
 
+### Integrantes:
+Emiliano Sorato
+
 
 # Microservicio de Documentación - SYSACAD
 
@@ -58,8 +61,10 @@ uv run granian --port 5000 --host 0.0.0.0 --http auto --workers 1 --interface ws
 5. Configuración de Variables de Entorno en el .env
 
 FLASK_CONTEXT=development
-# URLs apuntando al HOST (tu máquina) porque levantaste los mocks manualmente con docker run -p
+
+### URLs apuntando al HOST por si levantamos los mocks manualmente con docker run -p
 ALUMNO_SERVICE_URL=http://localhost:8080/api/v1/alumnos
+
 GESTION_SERVICE_URL=http://localhost:8081/api/v1/especialidades
 
 
@@ -115,7 +120,7 @@ docker compose up -d
 ### Dashboard de Traefik: Podrás ver el estado de tus servicios entrando a:
 https://traefik.universidad.localhost/dashboard/
 
-### 3. Construí la imagen del servicio desde la carpeta que contiene el Dockerfile
+### 3. Construir la imagen del servicio desde la carpeta que contiene el Dockerfile
 
 ```bash
 cd ~/SYSACAD\ DS/ms-documentacion-sysacad/app
@@ -258,19 +263,6 @@ Ejecutar en la terminal desde la carpeta de test_carga:
 ```bash
 vegeta attack -rate=50 -duration=30s -targets=./test_carga.txt | vegeta report
 ```
-
-## LO QUE EL PROYECTO DEBE CUMPLIR:
-
-- Analisis y resultados de vegueta - CUMPLE
-- Proyecto funcionando (creacion de imagen - dockerfile)- CUMPLE
-- Patrones de Microservicios:
-    - Balanceo de Carga - CUMPLE
-    - Retry - CUMPLE
-    - Rate Limit (alternativo) -  NO CUMPLE PERO NO HACE FALTA
-    - Corto circuito - NO CUMPLE AL TODO
-    - Cache de objetos - NO CUMPLE
-
-    
 
 
 
