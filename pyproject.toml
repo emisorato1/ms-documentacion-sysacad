@@ -14,4 +14,5 @@ dependencies = [
     "requests==2.32.5",
     "weasyprint==65.1",
     "granian",
+    "redis==5.2.0",
 ]

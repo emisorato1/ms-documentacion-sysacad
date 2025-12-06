@@ -1,1 +1,1 @@
-GET https://documentos.universidad.localhost/api/v1/certificado/339454026/pdf
+GET https://documentos.universidad.localhost/api/v1/certificado/295498676/pdf

@@ -186,6 +186,14 @@ Si hiciste cambios en el código y necesitas reiniciar:
 docker compose down
 docker compose up -d 
 ```
+**Reiniciar el microservicio:**
+Si hiciste cambios en el código y necesitas reiniciar:
+```bash
+docker compose down
+docker compose up -d 
+```
+
+
 
 
 
@@ -263,15 +271,6 @@ vegeta attack -rate=50 -duration=30s -targets=./test_carga.txt | vegeta report
     - Cache de objetos - NO CUMPLE
 
     
-
-@ms-documentacion-sysacad @mock-gestion-academica-main @mock-server-alumno-main @redis @traefik 
-
-
-Mi proyecto ms-documenteacion-sysacad debe cumplir con lo siguiente:
-
-@README.md (256-264) 
-
-Quiero poder hacer que cumpla con el corto circuito bien y sencillo, no quiero que modifiques el docker-compose @docker-compose.yml 
 
 
 

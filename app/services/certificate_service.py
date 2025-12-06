@@ -5,6 +5,7 @@ from flask import current_app
 from app.mapping import AlumnoMapping, EspecialidadMapping
 from app.models import Alumno
 from app.services.documentos_office_service import obtener_tipo_documento
+from app.services.cache_service import CacheService
 
 class CertificateService:
     @staticmethod
@@ -63,7 +64,7 @@ class CertificateService:
         alumnos_host = current_app.config.get('ALUMNOS_HOST', 'http://localhost:8080')
         url_alumnos = f'{alumnos_host}/api/v1/alumnos'
         alumno_mapping = AlumnoMapping()
-        r = requests.get(f'{url_alumnos}/{id}')
+        r = requests.get(f'{url_alumnos}/{id}', timeout=5)
         if r.status_code == 200:
             result = alumno_mapping.load(r.json())  
         else:
@@ -72,10 +73,16 @@ class CertificateService:
     
     @staticmethod
     def _buscar_especialidad_por_id(id: int):
+        # Primero intentar obtener desde Redis
+        especialidad = CacheService.obtener_especialidad(id)
+        if especialidad:
+            return especialidad
+        
+        # Si no está en cache, buscar en el servicio
         academica_host = current_app.config.get('ACADEMICA_HOST', 'http://localhost:8081')
         url_especialidades = f'{academica_host}/api/v1/especialidades'
         especialidad_mapping = EspecialidadMapping()
-        r = requests.get(f'{url_especialidades}/{id}')
+        r = requests.get(f'{url_especialidades}/{id}', timeout=5)
         if r.status_code == 200:
             result = especialidad_mapping.load(r.json())
         else:
